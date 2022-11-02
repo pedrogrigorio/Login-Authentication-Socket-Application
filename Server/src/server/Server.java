@@ -18,18 +18,22 @@ public class Server {
 
     private void trataConexao(Socket socket) throws IOException{
         try{
-            ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
             ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
 
             String msg = input.readUTF();
-            System.out.println("Mensagem recebida...");
+            System.out.println("Mensagem recebida: " + msg);
+
+            System.out.println("Enviando resposta...");
             output.writeUTF("Hello World");
+            output.flush();
 
             input.close();
             output.close();
         }
         catch(IOException e){
-            //tratamento
+            System.out.println("Problema no tratamento da conexão com o cliente: " + socket.getInetAddress());
+            System.out.println("Erro: " + e.getMessage());
         }
         finally{
             fechaSocket(socket);
