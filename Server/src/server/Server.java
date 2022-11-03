@@ -47,15 +47,19 @@ public class Server {
     public static void main(String[] args){
         try{
             Server server = new Server();
-            System.out.println("Aguardando conexão...");
             server.criarServerSocket(5555);
-            Socket socket = server.esperaConexao();
-            System.out.println("Cliente conectado.");
-            server.trataConexao(socket);
-            System.out.println("Cliente finalizado.");
+            
+            while(true){
+                System.out.println("Aguardando conexão...");
+                Socket socket = server.esperaConexao();
+                System.out.println("Cliente conectado.");
+                server.trataConexao(socket);
+                System.out.println("Cliente finalizado.");
+            }
         }
         catch(IOException e){
             //tratamento
+            System.out.println("Erro no servidor: " + e.getMessage());
         }
     }
 }
