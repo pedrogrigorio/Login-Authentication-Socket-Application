@@ -15,9 +15,12 @@ public class Client {
             ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
 
-            System.out.println("Enviando mensagem...");
-            String msg = "HELLO";
-            output.writeUTF(msg);
+            Message msg = new Message("Hello");
+            msg.setStatus(Solicitacao);
+            msg.setParam("nome", "Pedro");
+            msg.setParam("sobrenome", "Grigorio");
+
+            output.writeObject(msg);
             output.flush();
 
             System.out.println("Mensagem " + msg + " enviada.");

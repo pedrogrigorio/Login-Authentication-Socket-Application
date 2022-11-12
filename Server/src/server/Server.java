@@ -7,25 +7,34 @@ public class Server {
     
     private ServerSocket serverSocket;
 
-    private void criarServerSocket(int port) throws IOException{
+    private void createSocket(int port) throws IOException{
         serverSocket = new ServerSocket(port);
     }
 
-    private Socket esperaConexao() throws IOException{
-        Socket con = serverSocket.accept();
-        return con;
+    private Socket waitContact() throws IOException{
+        Socket conn = serverSocket.accept();
+        return conn;
     }
 
     private void trataConexao(Socket socket) throws IOException{
         try{
             ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
+            
+            Message msg = input.readObject();
+            String op = msg.getOperation();
 
-            String msg = input.readUTF();
-            System.out.println("Mensagem recebida: " + msg);
+            if(op.equals("Hello")){
+                String nome = (String) msg.getParam("nome");
+                String sobrenome = (String) msg.getParam("sobrenome");
 
+                Message reply = new Message("Hello reply");
+                reply.setStatus(ok);
+                reply.setParam("mensagem","Hello world, " + nome + " " + sobrenome);
+            }
+
+            output.writeObject(msg);
             System.out.println("Enviando resposta...");
-            output.writeUTF("Hello World");
             output.flush();
 
             input.close();
@@ -36,29 +45,28 @@ public class Server {
             System.out.println("Erro: " + e.getMessage());
         }
         finally{
-            fechaSocket(socket);
+            closeSocket(socket);
         }
     }
 
-    private void fechaSocket(Socket s) throws IOException{
-        s.close();
+    private void closeSocket(Socket socket) throws IOException{
+        socket.close();
     }
 
     public static void main(String[] args){
         try{
-            Server server = new Server();
-            server.criarServerSocket(5555);
+            Server conn = new Server();
+            conn.createSocket(5555);
             
             while(true){
                 System.out.println("Aguardando conexão...");
-                Socket socket = server.esperaConexao();
+                Socket socket = conn.waitContact();
                 System.out.println("Cliente conectado.");
-                server.trataConexao(socket);
+                conn.trataConexao(socket);
                 System.out.println("Cliente finalizado.");
             }
         }
         catch(IOException e){
-            //tratamento
             System.out.println("Erro no servidor: " + e.getMessage());
         }
     }
