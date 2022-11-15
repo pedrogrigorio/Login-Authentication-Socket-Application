@@ -3,6 +3,9 @@ package server;
 import java.io.*;
 import java.net.*;
 
+import util.Message;
+import util.Status;
+
 public class Server {
     
     private ServerSocket serverSocket;
@@ -16,26 +19,35 @@ public class Server {
         return conn;
     }
 
-    private void trataConexao(Socket socket) throws IOException{
+    private void trataConexao(Socket socket) throws IOException, ClassNotFoundException{
         try{
             ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
             
-            Message msg = input.readObject();
+            System.out.println("Recebendo mensagem e verificando operacao...");
+            Message msg = (Message) input.readObject();
             String op = msg.getOperation();
+            Message reply = null;
 
             if(op.equals("Hello")){
                 String nome = (String) msg.getParam("nome");
                 String sobrenome = (String) msg.getParam("sobrenome");
+                System.out.println("Mensagem recebida");
 
-                Message reply = new Message("Hello reply");
-                reply.setStatus(ok);
-                reply.setParam("mensagem","Hello world, " + nome + " " + sobrenome);
+                reply = new Message("Helloreply");
+
+                if(nome == null || sobrenome == null)
+                    reply.setStatus(Status.ERROR);
+                else{
+                    reply.setStatus(Status.OK);
+                    reply.setParam("mensagem","Hello world, " + nome + " " + sobrenome);
+                    System.out.println("Tudo ok");
+                }
             }
 
-            output.writeObject(msg);
-            System.out.println("Enviando resposta...");
+            output.writeObject(reply);
             output.flush();
+            System.out.println("Enviando resposta...");
 
             input.close();
             output.close();
@@ -68,6 +80,9 @@ public class Server {
         }
         catch(IOException e){
             System.out.println("Erro no servidor: " + e.getMessage());
+        }
+        catch(ClassNotFoundException e){
+            System.out.println("Erro no cast: " + e.getMessage());
         }
     }
 }

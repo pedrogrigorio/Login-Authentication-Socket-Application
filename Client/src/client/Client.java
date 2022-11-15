@@ -5,6 +5,9 @@ import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import util.Message;
+import util.Status;
+
 public class Client {
     public static void main(String[] args) {
         try{
@@ -16,17 +19,26 @@ public class Client {
             ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
 
             Message msg = new Message("Hello");
-            msg.setStatus(Solicitacao);
+            msg.setStatus(Status.REQUEST);
             msg.setParam("nome", "Pedro");
             msg.setParam("sobrenome", "Grigorio");
 
+            System.out.println("Enviando mensagem...");
             output.writeObject(msg);
             output.flush();
 
-            System.out.println("Mensagem " + msg + " enviada.");
+            System.out.println("Mensagem " + msg + "enviada.");
 
-            msg = input.readUTF();
+            msg = (Message) input.readObject();
             System.out.println("Resposta: " + msg);
+            
+            if(msg.getStatus() == Status.OK){
+                String reply = (String) msg.getParam("mensagem");
+                System.out.println("Resposta: " + reply);
+            }
+            else{
+                System.out.println("Erro: " + msg.getStatus());
+            }
 
             input.close();
             output.close();
@@ -35,6 +47,9 @@ public class Client {
         catch(IOException ex) {
             System.out.println("Erro no cliente: " + ex);
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        catch (ClassNotFoundException e) {
+            System.out.println("Erro no cast: " + e.getMessage());
         }
         
 
