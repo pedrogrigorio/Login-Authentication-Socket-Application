@@ -4,14 +4,14 @@ import java.io.*;
 import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import util.Message;
 import util.Status;
-import util.State;
+
 
 public class Client {
     public static void main(String[] args) {
         try {
+
             System.out.println("Estabelecendo conexão...");
             Socket socket = new Socket("localhost", 5555);
             System.out.println("Conexão estabelecida");
@@ -19,74 +19,83 @@ public class Client {
             ObjectOutputStream output = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream input = new ObjectInputStream(socket.getInputStream());
 
-            /* 
-            State state = State.CONNECT;
-            String op = "";
-            while (state != State.DISCONNECT) {
+            Message reply = new Message("reply");
 
-                switch(state){
-                    case CONNECT:
-                        switch(op){
-                            case "login":
-                                break;
-                            case "register":
-                                break;
-                        }
-                        break;
-                    case AUTHENTICATED:
-                        break;
-                    case DISCONNECT:
-                        break;
-                    
-                }*/
-                System.out.println("Efetuando login");
-                // Faz login
-                Message msg = new Message("login");
-                msg.setParam("user", "Pedro");
-                msg.setParam("pass", "123");
+            // Faz cadastro
+            System.out.println("Efetuando cadastro");
+            Message msg = new Message("register");
+            msg.setParam("user", "Pedro");
+            msg.setParam("pass", "123");
 
-                output.writeObject(msg);
-                output.flush();
+            // Envia register request
+            System.out.println("Enviando...");
+            output.writeObject(msg);
+            output.flush();
+            System.out.println("Enviado");
 
-                System.out.println("Recebendo resposta");
-                // Recebe resposta
-                msg = (Message) input.readObject();
+            // Recebe resposta
+            // System.out.println("Resposta recebida");
+            reply = (Message) input.readObject();
+            System.out.println("Resposta recebida");
 
-                if (msg.getStatus() == Status.OK) {
-                    String reply = (String) msg.getParam("mensagem");
-                    System.out.println("Resposta: " + reply);
-                } else {
-                    System.out.println("Erro: " + msg.getStatus());
-                }
+            if (reply.getStatus() == Status.OK) {
+                System.out.println("Cadastrado com sucesso");
+            } else {
+                System.out.println("Falha no cadastro");
+                System.out.println("Erro: " + reply.getStatus());
+            }
 
-                // Manda operação Hello
-                System.out.println("Operação Hello");
-                msg = new Message("Hello");
-                msg.setStatus(Status.REQUEST);
-                msg.setParam("nome", "Pedro");
-                msg.setParam("sobrenome", "Grigorio");
+            // Login
+            System.out.println("Login");
+            msg = new Message("login");
+            msg.setParam("user", "Pedro");
+            msg.setParam("pass", "123");
+            // String op = keyboard.next();
 
-                System.out.println("Enviando mensagem...");
-                output.writeObject(msg);
-                output.flush();
+            // Envia login request
+            output.writeObject(msg);
+            output.flush();
 
-                // System.out.println("Mensagem " + msg + "enviada.");
+            // Recebe resposta
+            reply = (Message) input.readObject();
+            if (reply.getStatus() == Status.OK) {
+                System.out.println("Logado");
+            } else {
+                System.out.println("Erro no login: " + reply.getStatus());
+            }
 
-                // Recebe resposta
-                msg = (Message) input.readObject();
-                // System.out.println("Resposta: " + msg);
+            // Hello
+            System.out.println("Operação Hello");
+            msg = new Message("Hello");
+            msg.setStatus(Status.REQUEST);
+            msg.setParam("nome", "Pedro");
+            msg.setParam("sobrenome", "Grigorio");
 
-                if (msg.getStatus() == Status.OK) {
-                    String reply = (String) msg.getParam("mensagem");
-                    System.out.println("Resposta: " + reply);
-                } else {
-                    System.out.println("Erro: " + msg.getStatus());
-                }
+            // Envia mensagem
+            System.out.println("Enviando mensagem...");
+            output.writeObject(msg);
+            output.flush();
 
-                msg = new Message("logout");
-                output.writeObject(msg);
-                output.flush();
-            //}
+            // Recebe resposta
+            reply = (Message) input.readObject();
+
+            if (reply.getStatus() == Status.OK) {
+                String content = (String) reply.getParam("mensagem");
+                System.out.println("Resposta: " + content);
+            } else {
+                System.out.println("Erro: " + reply.getStatus());
+            }
+
+            // Logout
+            System.out.println("Logout");
+            msg = new Message("logout");
+            output.writeObject(msg);
+            output.flush();
+            System.out.println("Logout enviado");
+
+            reply = (Message) input.readObject();
+            System.out.println("Resposta: " + reply);
+            System.out.println("Desconectado");
 
             input.close();
             output.close();

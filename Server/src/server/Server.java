@@ -6,6 +6,7 @@ import java.net.*;
 import util.Message;
 import util.Status;
 import util.State;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +14,7 @@ public class Server {
     
     private ServerSocket serverSocket;
 
-    Map<String, Object> bd;
+    Map<String, Object> bd = new HashMap<>();
 
     private void createSocket(int port) throws IOException{
         serverSocket = new ServerSocket(port);
@@ -51,6 +52,7 @@ public class Server {
                                         state = State.AUTHENTICATED;
                                     }
                                     else{
+                                        System.out.println("Login Recusado");
                                         reply.setStatus(Status.ERROR);
                                         state = State.DISCONNECT;
                                     }
@@ -63,13 +65,17 @@ public class Server {
                                 System.out.println("Verificando dados");
                                 String user = (String) msg.getParam("user");
                                 String pass = (String) msg.getParam("pass");
-                                if(bd.containsKey(user)){
-                                    reply.setStatus(Status.ERROR);
-                                    state = State.DISCONNECT;
+                                System.out.println(user + pass);
+                                if(!bd.containsKey(user)){
+                                    System.out.println("Cadastrando");
+                                    reply.setStatus(Status.OK);
+                                    System.out.println("OK setado");
+                                    bd.put(user, pass);
+                                    System.out.println("Cadastrado");
                                 }
                                 else{
-                                    reply.setStatus(Status.OK);
-                                    bd.put(user, pass);
+                                    reply.setStatus(Status.ERROR);
+                                    state = State.DISCONNECT;
                                 } 
                                 break;
                             default:
@@ -98,6 +104,7 @@ public class Server {
                                 }
                                 break;
                             case "logout":
+                                System.out.println("Realizando logout");
                                 reply.setStatus(Status.OK);
                                 state = State.DISCONNECT;
                                 break;
@@ -108,6 +115,7 @@ public class Server {
                         }
                         break;
                     case DISCONNECT:
+                        System.out.println("Cliente desconectado");
                         break;
                 }
 
