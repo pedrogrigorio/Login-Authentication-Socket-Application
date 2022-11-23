@@ -16,6 +16,10 @@ public class Message implements Serializable{
         params = new HashMap<>();
     }
 
+    public void setOperation(String operation){
+        this.operation = operation;
+    }
+
     public String getOperation(){
         return operation;
     }

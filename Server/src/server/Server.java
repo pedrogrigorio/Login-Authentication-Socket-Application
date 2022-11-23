@@ -14,7 +14,7 @@ public class Server {
     
     private ServerSocket serverSocket;
 
-    Map<String, Object> bd = new HashMap<>();
+    Map<String, String> bd = new HashMap<>();
 
     private void createSocket(int port) throws IOException{
         serverSocket = new ServerSocket(port);
@@ -36,7 +36,7 @@ public class Server {
                 System.out.println("Recebendo mensagem e verificando operacao...");
                 Message msg = (Message) input.readObject();
                 String op = msg.getOperation();
-                Message reply = new Message(op + "reply");
+                Message reply = new Message("reply");
             
                 switch(state){
                     case CONNECT:
@@ -46,8 +46,9 @@ public class Server {
                                     System.out.println("Verificando credenciais");
                                     String user = (String) msg.getParam("user");
                                     String pass = (String) msg.getParam("pass");
-                                    if(bd.containsKey(user) && bd.get(user) == pass){
-                                        System.out.println("Verificados");
+
+                                    if(bd.containsKey(user) && (bd.get(user).equals(pass))){
+                                        System.out.println("Cliente logado");
                                         reply.setStatus(Status.OK);
                                         state = State.AUTHENTICATED;
                                     }
@@ -62,14 +63,12 @@ public class Server {
                                 }
                                 break;
                             case "register":
-                                System.out.println("Verificando dados");
+                                System.out.println("Verificando credenciais");
                                 String user = (String) msg.getParam("user");
                                 String pass = (String) msg.getParam("pass");
-                                System.out.println(user + pass);
+
                                 if(!bd.containsKey(user)){
-                                    System.out.println("Cadastrando");
                                     reply.setStatus(Status.OK);
-                                    System.out.println("OK setado");
                                     bd.put(user, pass);
                                     System.out.println("Cadastrado");
                                 }
@@ -77,6 +76,10 @@ public class Server {
                                     reply.setStatus(Status.ERROR);
                                     state = State.DISCONNECT;
                                 } 
+                                break;
+                            case "exit":
+                                reply.setStatus(Status.OK);
+                                state = State.DISCONNECT;
                                 break;
                             default:
                                 System.out.println("teste1");
@@ -88,25 +91,23 @@ public class Server {
                     case AUTHENTICATED:
                         switch(op){
                             case "Hello":
-                                System.out.println("Realizando operação Hello");
-                                String nome = (String) msg.getParam("nome");
-                                String sobrenome = (String) msg.getParam("sobrenome");
-                                System.out.println("Mensagem recebida");
+                                System.out.println("Realizando operação Hello.");
+                                String name = (String) msg.getParam("nome");
+                                System.out.println("Mensagem recebida.");
                             
-                                reply = new Message("Helloreply");
+                                reply = new Message("reply");
                             
-                                if(nome == null || sobrenome == null)
+                                if(name == null)
                                     reply.setStatus(Status.ERROR);
                                 else{
                                     reply.setStatus(Status.OK);
-                                    reply.setParam("mensagem", "Hello world, " + nome + " " + sobrenome);
-                                    System.out.println("Tudo ok");
+                                    reply.setParam("mensagem", "Hello World, " + name);
                                 }
                                 break;
                             case "logout":
                                 System.out.println("Realizando logout");
                                 reply.setStatus(Status.OK);
-                                state = State.DISCONNECT;
+                                state = State.CONNECT;
                                 break;
                             default:
                                 reply.setStatus(Status.ERROR);
@@ -120,8 +121,10 @@ public class Server {
                 }
 
                 System.out.println("Enviando resposta...");
+                System.out.println(reply.getStatus());
                 output.writeObject(reply);
                 output.flush();
+                reply.setStatus(Status.NULL);
             }
 
             input.close();
