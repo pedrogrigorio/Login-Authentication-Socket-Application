@@ -74,7 +74,6 @@ public class Server {
                                 }
                                 else{
                                     reply.setStatus(Status.ERROR);
-                                    state = State.DISCONNECT;
                                 } 
                                 break;
                             case "exit":
